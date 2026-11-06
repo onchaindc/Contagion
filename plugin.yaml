@@ -1,0 +1,31 @@
+name: contagion
+version: 0.1.0
+manifest_version: 2
+description: Taint-aware execution. Once a session reads untrusted content, its commands lose network, secrets and out-of-project writes at the OS layer.
+license: MIT
+tags: [security, sandbox, terminal, prompt-injection]
+provides_hooks:
+  - pre_tool_call
+  - post_tool_call
+config_schema:
+  mode:
+    type: str
+    choices: [enforce, monitor, off]
+    default: enforce
+    label: Mode
+    description: enforce jails tainted sessions, monitor only records taint, off disables the plugin.
+  untrusted_tool_patterns:
+    type: list
+    default: ["web_*", "browser_*", "mcp__*", "*fetch*", "*crawl*", "*scrape*"]
+    label: Untrusted source tools
+    description: Glob patterns for tools whose output can carry attacker text.
+  egress_tool_patterns:
+    type: list
+    default: ["send_message*", "*email*", "*upload*", "*webhook*", "*post_*", "*tweet*"]
+    label: Egress tools
+    description: Tools that move data out of the machine. A tainted session needs human approval to use them.
+  extra_secret_paths:
+    type: list
+    default: []
+    label: Extra secret paths
+    description: Extra paths hidden from tainted sessions (macOS only, Linux hides the whole home directory).
