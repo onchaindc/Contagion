@@ -23,19 +23,28 @@ class ContagionEnvironment(LocalEnvironment):
     _ct_project = ""
 
     def execute(self, command, *args, **kwargs):
-        if settings.get("mode", "enforce") == "enforce" and STATE.is_tainted(self._ct_task_id):
+        if settings.get("mode") == "enforce" and STATE.is_tainted(self._ct_task_id):
+            system = platform.system()
             try:
+                # A tainted session must never run unjailed: no sandbox tool on this host is
+                # a refusal, not a silent fallback to plain local execution.
+                if sandbox.detect(system) is None:
+                    raise sandbox.SandboxError(
+                        f"no usable sandbox on {system or 'this platform'} (Linux needs bwrap, "
+                        "macOS needs sandbox-exec); refusing to run a tainted session's command"
+                    )
                 command = sandbox.wrap(
                     command,
-                    system=platform.system(),
+                    system=system,
                     project_dir=self._ct_project or os.getcwd(),
                     home=os.path.expanduser("~"),
                     environ=os.environ,
-                    extra_deny_read=tuple(settings.get("extra_secret_paths", []) or []),
+                    extra_deny_read=tuple(settings.get("extra_secret_paths") or []),
                 )
             except sandbox.SandboxError as exc:
                 logger.warning("contagion: failing closed: %s", exc)
-                return {"output": f"[contagion] {exc}", "exit_code": 126}
+                # Hermes reads "returncode" (tools/file_operations.py:238, base.py:679).
+                return {"output": f"[contagion] {exc}", "returncode": 126}
         return super().execute(command, *args, **kwargs)
 
 
