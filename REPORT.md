@@ -57,7 +57,7 @@ H. Subagents get their own id, `subagent-<index>-<hex>` (`tools/delegate_tool_ch
 ## Still broken or unknown
 
 - No real LLM credentials exist here, so `hermes chat -q` against a hosted model could not run. The scripted local model exercised the same agent loop; a hosted-model run is still worth doing.
-- `hermes plugins validate` warns about private core imports: `tools.environments.local.LocalEnvironment` and `tools.terminal_tool._resolve_container_task_id` (`__init__.py:34`, `environment.py:10`). Both are unavoidable without redesign: the backend must subclass LocalEnvironment, and no public API exposes the container key. A future release could break either; the new code warns once rather than silently dropping enforcement.
+- `hermes plugins validate` warns about private core imports: `tools.environments.local.LocalEnvironment` and `tools.terminal_tool._resolve_container_task_id` (`__init__.py:39`, `environment.py:10`). Both are unavoidable without redesign: the backend must subclass LocalEnvironment, and no public API exposes the container key. A future release could break either; the new code warns once rather than silently dropping enforcement.
 - The CLI collapses every session to env key `default`. Two concurrent CLI or cron sessions in one process share it, so taint over-applies (fail-safe, not silent). Subagent behavior changes as described in H.
 - `hermes plugins doctor` reports `0 tool(s), 2 hook(s)` only; providers and commands are invisible there. Verified separately at runtime.
 - `hermes plugins show` prints `Runs in: Hermes process (plugins.isolation: host)` while the actual config is `in_process`. Display text only; the provider registers and runs.
@@ -89,7 +89,7 @@ $ python -m pytest -q tests
 28 passed in 0.04s
 $ hermes plugins validate . --install-deps
 ✓ security scan - safe
-⚠ private core imports: __init__.py:34 tools.terminal_tool._resolve_container_task_id;
+⚠ private core imports: __init__.py:39 tools.terminal_tool._resolve_container_task_id;
   environment.py:10 tools.environments.local.LocalEnvironment
 Validation passed.
 $ hermes plugins doctor . --ci
