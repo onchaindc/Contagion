@@ -25,6 +25,7 @@ _FETCH_COMMAND_RE = re.compile(r"(^|[\s;&|(])(curl|wget|http|https|gh\s+api|git\
 _CODE_FETCH_RE = re.compile(r"(requests\.(get|post)|urllib|httpx|aiohttp|fetch\()")
 
 MAX_RECORDS_PER_TASK = 50
+MAX_ALIASES = 1000
 
 
 @dataclass(frozen=True)
@@ -100,6 +101,8 @@ class TaintState:
             return
         with self._lock:
             self._aliases[task_id] = env_key
+            while len(self._aliases) > MAX_ALIASES:
+                self._aliases.pop(next(iter(self._aliases)), None)
 
     def _keys_for(self, task_id: str) -> List[str]:
         key = task_id or "default"

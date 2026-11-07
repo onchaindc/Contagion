@@ -33,6 +33,10 @@ def get(key: str, default=None):
             value = _ctx.get_config(key, default=None)
         except Exception:
             value = None
+    if key == "mode" and value is not None and value not in ("enforce", "monitor", "off"):
+        # `hermes config set` accepts any value; an unknown mode must not silently
+        # disable both the jail and the approval gates.
+        return "enforce"
     if value is not None:
         return value
     if default is not None:

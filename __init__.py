@@ -23,18 +23,30 @@ def _log_event(kind: str, **data) -> None:
         pass
 
 
+_env_key_warned = False
+
+
 def _env_key(task_id: str) -> str | None:
     """The key Hermes uses for this session's terminal environment.
 
     Hooks receive the per-turn task id (a uuid in the CLI); ``create_environment`` receives
     the container key that ``_resolve_container_task_id`` derives from it (literally
-    "default" in the CLI). Without this bridge the jail key and the taint key never meet.
+    "default" in the CLI). Without this bridge the jail key and the taint key never meet,
+    so a missing seam has to be loud rather than a silent loss of enforcement.
     """
+    global _env_key_warned
     try:
         from tools.terminal_tool import _resolve_container_task_id
 
         return _resolve_container_task_id(task_id)
-    except Exception:
+    except Exception as exc:
+        if not _env_key_warned:
+            _env_key_warned = True
+            logger.warning(
+                "contagion: cannot resolve the terminal environment key (%s); "
+                "tainted sessions will not be jailed until this is fixed",
+                exc,
+            )
         return None
 
 
