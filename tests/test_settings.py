@@ -71,6 +71,15 @@ def test_overrides_win_and_lists_are_copies():
         plugin.settings.bind(None)
 
 
+def test_unknown_mode_fails_safe_to_enforce():
+    plugin = _load_plugin()
+    plugin.settings.bind(FakeCtx({"mode": "banana"}))
+    try:
+        assert plugin.settings.get("mode") == "enforce"
+    finally:
+        plugin.settings.bind(None)
+
+
 def test_get_config_errors_fall_back():
     class Boom:
         def get_config(self, key, default=None):
