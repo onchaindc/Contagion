@@ -23,6 +23,21 @@ def _log_event(kind: str, **data) -> None:
         pass
 
 
+def _env_key(task_id: str) -> str | None:
+    """The key Hermes uses for this session's terminal environment.
+
+    Hooks receive the per-turn task id (a uuid in the CLI); ``create_environment`` receives
+    the container key that ``_resolve_container_task_id`` derives from it (literally
+    "default" in the CLI). Without this bridge the jail key and the taint key never meet.
+    """
+    try:
+        from tools.terminal_tool import _resolve_container_task_id
+
+        return _resolve_container_task_id(task_id)
+    except Exception:
+        return None
+
+
 def _backend_is_contagion() -> bool:
     try:
         from hermes_cli.config import load_config_readonly
@@ -34,24 +49,33 @@ def _backend_is_contagion() -> bool:
 
 
 def _post_tool_call(tool_name, args, result, task_id, **kwargs):
-    if settings.get("mode", "enforce") == "off":
+    if settings.get("mode") == "off":
         return
     source = taint.classify_source(
-        tool_name, args, patterns=settings.get("untrusted_tool_patterns", None)
+        tool_name, args, patterns=settings.get("untrusted_tool_patterns")
     )
     if source is None:
         return
+    env_key = _env_key(task_id)
+    STATE.link(task_id, env_key)
     if STATE.mark(task_id, source):
         logger.warning("contagion: session %s tainted by %s", task_id, source.tool)
-    _log_event("taint", task_id=task_id, tool=source.tool, reason=source.reason, detail=source.detail)
+    _log_event(
+        "taint",
+        task_id=task_id,
+        env_key=env_key,
+        tool=source.tool,
+        reason=source.reason,
+        detail=source.detail,
+    )
 
 
 def _pre_tool_call(tool_name, args, task_id, **kwargs):
-    mode = settings.get("mode", "enforce")
+    mode = settings.get("mode")
     if mode == "off" or not STATE.is_tainted(task_id):
         return None
     why = STATE.summary(task_id)
-    egress = settings.get("egress_tool_patterns", None) or taint.DEFAULT_EGRESS_PATTERNS
+    egress = settings.get("egress_tool_patterns")
     if taint.matches(tool_name, egress):
         _log_event("egress_gate", task_id=task_id, tool=tool_name, mode=mode)
         if mode == "enforce":
