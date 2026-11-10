@@ -16,12 +16,12 @@ config_schema:
     description: enforce jails tainted sessions, monitor only records taint, off disables the plugin.
   untrusted_tool_patterns:
     type: list
-    default: ["web_*", "browser_*", "mcp__*", "*fetch*", "*crawl*", "*scrape*"]
+    default: ["web_search", "web_extract", "browser_*", "mcp__*", "x_search"]
     label: Untrusted source tools
     description: Glob patterns for tools whose output can carry attacker text.
   egress_tool_patterns:
     type: list
-    default: ["send_message*", "*email*", "*upload*", "*webhook*", "*post_*", "*tweet*"]
+    default: ["discord*", "feishu_drive_*", "yb_send_*", "react_to_message", "mcp__*"]
     label: Egress tools
     description: Tools that move data out of the machine. A tainted session needs human approval to use them.
   extra_secret_paths:
