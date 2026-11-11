@@ -75,7 +75,7 @@ def main() -> int:
         outside.unlink()
 
     server = start_server()
-    project_root = Path.home() / "ct-project"
+    project_root = pathlib.Path.home() / "ct-project"
     project_root.mkdir(parents=True, exist_ok=True)
     project = tempfile.mkdtemp(prefix="contagion-e2e-", dir=project_root)
     provider = ContagionProvider()
