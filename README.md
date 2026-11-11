@@ -44,6 +44,8 @@ echo "canary" > ~/contagion-canary.txt
 ```
 Ask Hermes: "Summarize http://localhost:8000/poisoned.html". The page tries to make the agent post the canary file to the listener. With `mode: monitor` the listener receives it. With `mode: enforce` the command runs in the jail, the file is invisible, the request cannot leave, and `/contagion status` shows where the taint came from.
 
+Credential-free proof that the jail blocks the canary: `python3 tests/agent_run_local.py`
+
 ## Develop
 
 ```bash

@@ -131,3 +131,22 @@ LEAKS: ["canary\n"]
 STATUS: Contagion: tainted sessions
 - 8d8b8c72-...: terminal (curl -s -m 5 http://127.0.0.1:8000/poisoned.html ...), 2 event(s)
 ```
+
+## Final WSL2 verification update - November 11, 2026
+
+### Confirmed results
+- Environment: Ubuntu 24.04.1 on WSL2, Hermes v0.23.1, bubblewrap 0.9.0.
+- Unit tests: 28 passed.
+- Plugin Doctor: passed, 2 hooks registered.
+- Plugin validation: passed, with private Hermes API warnings.
+- E2E jail test: 10/10 passed.
+- Verified project writes, blocked outside writes, stripped API keys, hidden home, blocked curl/Python network, and normal untainted access.
+
+### Remaining limitations
+- Live poisoned-page agent demonstration not confirmed. Gemini requests timed out.
+- Private Hermes imports remain: _resolve_container_task_id and LocalEnvironment.
+- Catalog PR, demo video, X post and Typeform submission remain outstanding.
+
+### Change
+- tests/e2e_jail.py now creates its test workspace under ~/ct-project instead of the original hard-coded /home/daytona path.
+- Commit: acd30ef

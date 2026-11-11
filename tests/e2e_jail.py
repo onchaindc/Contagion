@@ -75,7 +75,9 @@ def main() -> int:
         outside.unlink()
 
     server = start_server()
-    project = tempfile.mkdtemp(prefix="contagion-e2e-", dir="/home/daytona")
+    project_root = pathlib.Path.home() / "ct-project"
+    project_root.mkdir(parents=True, exist_ok=True)
+    project = tempfile.mkdtemp(prefix="contagion-e2e-", dir=project_root)
     provider = ContagionProvider()
     env = provider.create_environment(cwd=project, timeout=60, task_id="default")
 
